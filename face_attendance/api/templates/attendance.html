@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Prise de présence</h1>
+<p class="sub">Choisissez la séance et importez une photo de la classe</p>
+
+<div class="card">
+  {% if seances %}
+  <form method="post" action="/ui/attendance/recognize" enctype="multipart/form-data">
+    <div class="row">
+      <div>
+        <label>Séance</label>
+        <select name="seance_id" required>
+          {% for s in seances %}
+          <option value="{{ s.id }}">#{{ s.id }} — {{ s.module.libelle if s.module else "séance" }}{% if s.salle %} ({{ s.salle }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label>Photo de la classe</label>
+        <input type="file" name="photo" accept="image/*" required>
+      </div>
+      <div style="flex:0"><button class="btn" type="submit">Reconnaître</button></div>
+    </div>
+  </form>
+  {% else %}
+  <p class="muted">Aucune séance. Créez d'abord une séance (module + salle).</p>
+  {% endif %}
+</div>
+{% endblock %}

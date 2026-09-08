@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Enrôlement — {{ (etu.prenom ~ " " if etu.prenom else "") ~ etu.nom }}</h1>
+<p class="sub">Ajoutez 3 à 5 photos du visage (angles et éclairages variés)</p>
+
+<div class="card">
+  <form method="post" action="/ui/students/{{ etu.id }}/enroll" enctype="multipart/form-data">
+    <label>Photos du visage</label>
+    <input type="file" name="files" accept="image/*" multiple required>
+    <p class="muted" style="font-size:.85rem;margin:10px 0 16px">
+      Seules les empreintes numériques sont conservées ; le consentement de la personne est requis (loi 09-08).
+    </p>
+    <button class="btn" type="submit">Enregistrer les empreintes</button>
+    <a class="btn ghost" href="/ui/students">Annuler</a>
+  </form>
+</div>
+{% endblock %}

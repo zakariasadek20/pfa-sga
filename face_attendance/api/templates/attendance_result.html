@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Résultat de la reconnaissance</h1>
+<p class="sub">Séance #{{ seance.id }}{% if seance.module %} — {{ seance.module.libelle }}{% endif %} · vérifiez puis validez</p>
+
+<div class="grid" style="grid-template-columns:1.3fr 1fr">
+  <div class="card">
+    {% if image_b64 %}
+      <img class="result" src="data:image/jpeg;base64,{{ image_b64 }}" alt="Résultat annoté">
+    {% else %}
+      <p class="muted">Image illisible.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0;font-size:1.05rem">Étudiants détectés</h2>
+    <form method="post" action="/ui/attendance/confirm">
+      <input type="hidden" name="seance_id" value="{{ seance.id }}">
+      {% set reconnus = faces | selectattr("etudiant_id") | list %}
+      {% if reconnus %}
+        {% for f in reconnus %}
+        <label style="display:flex;align-items:center;gap:8px;margin:8px 0;font-size:.95rem;color:var(--ink)">
+          <input type="checkbox" name="present_ids" value="{{ f.etudiant_id }}" {% if f.is_real != false %}checked{% endif %} style="width:auto">
+          {{ f.nom }}
+          {% if f.is_real == false %}<span class="badge r">⚠ photo ? ({{ "%.2f"|format(f.liveness) }})</span>
+          {% elif f.liveness is not none %}<span class="badge g">réel {{ "%.2f"|format(f.liveness) }}</span>{% endif %}
+          <span class="badge g" style="margin-left:auto">{{ "%.2f"|format(f.score) }}</span>
+        </label>
+        {% endfor %}
+      {% else %}
+        <p class="muted">Aucun étudiant enrôlé reconnu sur la photo.</p>
+      {% endif %}
+
+      {% set inconnus = faces | rejectattr("etudiant_id") | list %}
+      {% if inconnus %}
+        <p class="muted" style="font-size:.85rem;margin-top:12px">
+          {{ inconnus|length }} visage(s) non reconnu(s) (non enrôlés).
+        </p>
+      {% endif %}
+
+      <div style="margin-top:16px">
+        <button class="btn" type="submit">Valider les présences</button>
+        <a class="btn ghost" href="/ui/attendance">Recommencer</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

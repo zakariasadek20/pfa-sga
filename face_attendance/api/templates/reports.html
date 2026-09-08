@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Rapports d'assiduité</h1>
+<p class="sub">Taux de présence par module</p>
+
+<div class="card">
+  <form method="get" action="/ui/reports">
+    <div class="row">
+      <div>
+        <label>Module</label>
+        <select name="module_id" onchange="this.form.submit()">
+          <option value="">— choisir —</option>
+          {% for m in modules %}
+          <option value="{{ m.id }}" {% if selected and selected.id==m.id %}selected{% endif %}>{{ m.libelle }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="flex:0"><button class="btn" type="submit">Afficher</button></div>
+    </div>
+  </form>
+</div>
+
+{% if selected %}
+<div class="section-title">
+  <h2>{{ selected.libelle }}</h2>
+  <div>
+    <a class="btn ghost" href="/modules/{{ selected.id }}/report.xlsx">⬇ Excel</a>
+    <a class="btn" href="/modules/{{ selected.id }}/report.pdf">⬇ PDF</a>
+  </div>
+</div>
+<div class="card">
+  {% if rows %}
+  <table>
+    <thead><tr><th>Étudiant</th><th>Présences</th><th>Taux</th><th></th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.nom }}</td>
+        <td>{{ r.presences }} / {{ r.total }}</td>
+        <td style="width:130px"><div class="bar"><span style="width:{{ r.taux }}%"></span></div></td>
+        <td style="width:60px">{{ r.taux }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Aucun étudiant rattaché à ce module.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

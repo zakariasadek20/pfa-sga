@@ -1,0 +1,44 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="Diagramme de classes" id="class-1">
+    <mxGraphModel dx="1050" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1120" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Diagramme de classes — AI Class Attendance for Students" style="text;html=1;align=center;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="10" width="600" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cEns" value="&lt;b&gt;Enseignant&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;- id&lt;br&gt;- nom&lt;br&gt;- email&lt;br&gt;- motDePasse" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="cMod" value="&lt;b&gt;Module&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;- id&lt;br&gt;- libellé" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="340" y="70" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cEtu" value="&lt;b&gt;Étudiant&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;- id&lt;br&gt;- nom&lt;br&gt;- prénom&lt;br&gt;- code (CNE)&lt;br&gt;- email" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="660" y="70" width="200" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="cCla" value="&lt;b&gt;Classe&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;- id&lt;br&gt;- libellé&lt;br&gt;- filière&lt;br&gt;- niveau" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="330" width="200" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="cSea" value="&lt;b&gt;Séance&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;- id&lt;br&gt;- date&lt;br&gt;- heureDébut&lt;br&gt;- heureFin&lt;br&gt;- salle" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="340" y="330" width="200" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="cEmp" value="&lt;b&gt;EmpreinteRéférence&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;- id&lt;br&gt;- vecteur (embedding)&lt;br&gt;- cheminImage&lt;br&gt;- date" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="660" y="330" width="220" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="cPre" value="&lt;b&gt;Présence&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;- id&lt;br&gt;- statut (présent/absent/retard)&lt;br&gt;- horodatage&lt;br&gt;- scoreConfiance&lt;br&gt;- méthode (auto/manuel)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="340" y="560" width="240" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="r1" value="responsable (1..*)" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1" source="cEns" target="cMod"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r2" value="propose (1..*)" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1" source="cCla" target="cMod"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r3" value="planifie (1..*)" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1" source="cMod" target="cSea"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r4" value="regroupe (1..*)" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1" source="cCla" target="cEtu"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r5" value="possède (1..*)" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1" source="cEtu" target="cEmp"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r6" value="génère (1..*)" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1" source="cSea" target="cPre"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r7" value="concerne (1..*)" style="endArrow=none;html=1;fontSize=10;" edge="1" parent="1" source="cEtu" target="cPre"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

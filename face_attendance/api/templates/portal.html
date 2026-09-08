@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Portail étudiant</h1>
+<p class="sub">Consultez votre taux de présence</p>
+
+<div class="card">
+  <form method="get" action="/ui/portail">
+    <div class="row">
+      <div>
+        <label>Étudiant</label>
+        <select name="student_id" onchange="this.form.submit()">
+          <option value="">— choisir —</option>
+          {% for e in etudiants %}
+          <option value="{{ e.id }}" {% if selected and selected.id==e.id %}selected{% endif %}>{{ (e.prenom ~ " " if e.prenom else "") ~ e.nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="flex:0"><button class="btn" type="submit">Afficher</button></div>
+    </div>
+  </form>
+</div>
+
+{% if selected and hist %}
+<div class="grid stats" style="margin-top:18px">
+  <div class="card stat"><div class="num">{{ hist.taux }}%</div><div class="lbl">Taux de présence</div></div>
+  <div class="card stat"><div class="num">{{ hist.presences }}</div><div class="lbl">Présences</div></div>
+  <div class="card stat"><div class="num">{{ hist.total }}</div><div class="lbl">Séances</div></div>
+</div>
+
+<div class="section-title"><h2>Détail des séances</h2></div>
+<div class="card">
+  {% if hist.rows %}
+  <table>
+    <thead><tr><th>Séance</th><th>Module</th><th>Statut</th></tr></thead>
+    <tbody>
+      {% for r in hist.rows %}
+      <tr>
+        <td>#{{ r.seance.id }}{% if r.seance.date %} — {{ r.seance.date }}{% endif %}</td>
+        <td>{{ r.seance.module.libelle if r.seance.module else "—" }}</td>
+        <td>{% if r.present %}<span class="badge g">présent</span>{% else %}<span class="badge r">absent</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Aucune séance enregistrée pour la classe de cet étudiant.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Tableau de bord</h1>
+<p class="sub">Gestion des présences par reconnaissance faciale — ISGA</p>
+
+<div class="grid stats">
+  <div class="card stat"><div class="num">{{ n_etu }}</div><div class="lbl">Étudiants enrôlés</div></div>
+  <div class="card stat"><div class="num">{{ n_sea }}</div><div class="lbl">Séances</div></div>
+  <div class="card stat"><div class="num">{{ n_pre }}</div><div class="lbl">Présences enregistrées</div></div>
+</div>
+
+<div class="section-title">
+  <h2>Dernières séances</h2>
+  <a class="btn" href="/ui/attendance">Nouvelle prise de présence</a>
+</div>
+<div class="card">
+  {% if seances %}
+  <table>
+    <thead><tr><th>Séance</th><th>Module</th><th>Salle</th><th>Présents</th></tr></thead>
+    <tbody>
+      {% for s in seances %}
+      <tr>
+        <td>#{{ s.id }}{% if s.date %} — {{ s.date }}{% endif %}</td>
+        <td>{{ s.module.libelle if s.module else "—" }}</td>
+        <td>{{ s.salle or "—" }}</td>
+        <td>{{ s.presences | selectattr("statut","ne","absent") | list | length }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Aucune séance pour l'instant. Créez-en une puis lancez une prise de présence.</p>
+  {% endif %}
+</div>
+{% endblock %}

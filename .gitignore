@@ -1,0 +1,23 @@
+# Environnement Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Données personnelles / biométriques — NE JAMAIS versionner
+data/enrollment/*/
+data/enrollment_db.npz
+data/test/*
+data/resultat_reconnaissance.jpg
+data/attendance.db
+data/demo_faces/
+!data/enrollment/.gitkeep
+!data/test/.gitkeep
+
+# Modèles téléchargés
+~/.insightface/
+data/models/
+
+# Divers
+*.log
+.DS_Store
