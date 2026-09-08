@@ -345,7 +345,7 @@ image_slide(11, "7. Résultats — calibration du seuil", "fig_far_frr.png",
             "FAR et FRR nuls entre 0,20 et 0,50 ; seuil retenu : 0,35.")
 # 12 — multi-visages
 image_slide(12, "7. Résultats — scène multi-visages", "fig_classe_annotee.png",
-            "10/10 étudiants reconnus, 2/2 intrus rejetés, ~2 s ; 2 détections parasites (arrière-plan).")
+            "Photo de classe : 6/6 étudiants reconnus et nommés, 2/2 intrus rejetés (« Inconnu »), ~2 s.")
 # 13 — éthique
 content(13, "8. Éthique & conformité — loi 09-08", [
     "Le visage est une donnée biométrique sensible (loi 09-08, contrôle CNDP).",
