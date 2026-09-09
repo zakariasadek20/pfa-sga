@@ -1,0 +1,3 @@
+# Fins de ligne correctes selon la plateforme
+*.bat text eol=crlf
+*.sh  text eol=lf

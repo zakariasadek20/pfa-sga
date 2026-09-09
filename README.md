@@ -21,12 +21,37 @@ module **anti-spoofing** (détection du vivant). Principe clé : la reconnaissan
 
 ---
 
+## Démarrage rapide
+
+> Prérequis : **Python 3.10 ou plus** installé (https://www.python.org/downloads/ —
+> sous Windows, cochez « Add Python to PATH »).
+
+### Windows
+1. **Installer** (une seule fois) : double-cliquez sur **`install-windows.bat`**
+2. **Lancer** : double-cliquez sur **`start-windows.bat`**
+   → le navigateur s'ouvre automatiquement sur **http://127.0.0.1:8000**
+
+### macOS / Linux
+```bash
+./install-mac-linux.sh     # une seule fois
+./start-mac-linux.sh       # lance l'application + ouvre http://127.0.0.1:8000
+```
+
+Le **premier** lancement télécharge le modèle IA (`buffalo_l`) — patientez une minute.
+Pour **arrêter** : fermez la fenêtre du serveur (Windows) ou faites **Ctrl+C** (macOS/Linux).
+
+---
+
 ## Structure du projet
 
 ```
 isga-pfa/
 ├── README.md                    Ce fichier
 ├── requirements.txt             Dépendances Python
+├── install-windows.bat          ▶ Installer le projet (Windows, une seule fois)
+├── start-windows.bat            ▶ Lancer l'application (Windows)
+├── install-mac-linux.sh         ▶ Installer le projet (macOS/Linux, une seule fois)
+├── start-mac-linux.sh           ▶ Lancer l'application (macOS/Linux)
 │
 ├── face_attendance/             ▶ L'APPLICATION (paquet Python)
 │   ├── config.py                Chemins, nom du modèle, seuil de reconnaissance
