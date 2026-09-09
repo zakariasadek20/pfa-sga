@@ -18,6 +18,7 @@ data/enrollment_db.npz
 data/test/*
 data/demo_faces/
 data/resultat_reconnaissance.jpg
+docs/email.md
 !data/enrollment/.gitkeep
 !data/test/.gitkeep
 
