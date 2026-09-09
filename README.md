@@ -1,60 +1,119 @@
 # AI Class Attendance for Students
 
-Système intelligent de gestion des présences par reconnaissance faciale.
-PFA — ISGA, Cycle d'ingénieur 2ᵉ année, 2025–2026.
-Équipe : BENDADI Mohamed · SADEK Zakaria · BELHASSAN Amine — Encadrant : M. Adama SAMAKE.
+**Système intelligent de gestion des présences par reconnaissance faciale.**
+Projet de Fin d'Année (PFA) — ISGA, Cycle d'ingénieur 2ᵉ année, 2025–2026.
 
-> Documentation projet : `docs/analyse-conception.md` (contexte, conception).
-> Rapport : `rapport/rapport-pfa.md`. Diagrammes : `rapport/diagrammes/`.
+- **Équipe :** BENDADI Mohamed · SADEK Zakaria · BELHASSAN Amine
+- **Encadrant :** M. Adama SAMAKE
 
-## Architecture du code
+---
+
+## Aperçu
+
+L'application identifie les étudiants présents à partir d'une **photo de la classe**,
+enregistre les présences et les restitue à l'enseignant via un **tableau de bord**
+(statistiques, rapports, exports Excel/PDF) et un **portail étudiant**.
+
+Le cœur repose sur des modèles pré-entraînés de l'état de l'art :
+**RetinaFace** (détection des visages) + **ArcFace** (empreinte 512-d), avec un
+module **anti-spoofing** (détection du vivant). Principe clé : la reconnaissance
+**propose**, l'enseignant **valide**, puis les présences sont **enregistrées**.
+
+---
+
+## Structure du projet
 
 ```
-face_attendance/          Paquet Python (cœur applicatif)
-  config.py               Chemins, nom du modèle, seuil de reconnaissance
-  face/
-    engine.py             FaceEngine : détection (RetinaFace) + empreinte (ArcFace)
-    enrollment.py         Construction / sauvegarde de la base d'empreintes
-  cli/
-    enroll.py             Enrôlement des étudiants (CLI)
-    recognize.py          Reconnaissance sur une photo de classe (CLI)
-scripts/
-  smoke_test.py           Vérifie que le moteur IA se charge et s'exécute
-data/
-  enrollment/<étudiant>/  Photos de référence (3–5 par étudiant)  [NON versionné]
-  test/                   Photos de classe pour les essais         [NON versionné]
+isga-pfa/
+├── README.md                    Ce fichier
+├── requirements.txt             Dépendances Python
+│
+├── face_attendance/             ▶ L'APPLICATION (paquet Python)
+│   ├── config.py                Chemins, nom du modèle, seuil de reconnaissance
+│   ├── face/                    Moteur IA
+│   │   ├── engine.py            Détection (RetinaFace) + empreinte (ArcFace)
+│   │   ├── enrollment.py        Calcul et stockage des empreintes de référence
+│   │   └── antispoofing.py      Détection du vivant (MiniFASNet)
+│   ├── api/                     Backend & interface web
+│   │   ├── main.py              Point d'entrée FastAPI
+│   │   ├── models.py            Modèle de données (SQLAlchemy)
+│   │   ├── database.py          Connexion SQLite
+│   │   ├── face_service.py      Pont API ↔ moteur IA
+│   │   ├── web.py               Tableau de bord (pages web)
+│   │   ├── routers/             Points d'accès REST (étudiants, séances, rapports…)
+│   │   └── templates/           Gabarits HTML du tableau de bord
+│   └── cli/                     Commandes en ligne (enrôlement, reconnaissance)
+│
+├── scripts/                     ▶ SCRIPTS (évaluation, tests, démonstration)
+│   ├── smoke_test.py            Vérifie le chargement du moteur IA
+│   ├── demo_seed.py             Prépare une démo (6 étudiants + photo de classe)
+│   ├── evaluate_lfw.py          Évaluation sur le jeu public LFW
+│   ├── realtime_attendance.py   Reconnaissance en temps réel (webcam)
+│   └── test_api.py / test_dashboard.py   Tests de l'API et du tableau de bord
+│
+├── docs/                        ▶ ANALYSE & CONCEPTION (document de référence)
+│
+├── rapport/                     ▶ LIVRABLES
+│   ├── rapport-pfa.docx         Rapport (éditable)
+│   ├── rapport-pfa.pdf          Rapport (PDF)
+│   ├── presentation-pfa.pptx    Présentation de soutenance
+│   ├── diagrammes/              Figures et diagrammes
+│   └── annexes/                 Formulaire de consentement
+│
+└── data/                        Données (photos, base) — NON versionné (voir .gitignore)
 ```
+
+---
 
 ## Installation
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -U pip wheel setuptools
+pip install -U pip wheel
 pip install -r requirements.txt
 ```
 
-Au premier lancement, InsightFace télécharge automatiquement le modèle `buffalo_l`
-(RetinaFace + ArcFace).
+> Au premier lancement, InsightFace télécharge automatiquement le pack
+> `buffalo_l` (RetinaFace + ArcFace).
 
-## Utilisation (cœur IA)
+---
 
-1. **Vérifier l'installation :**
-   ```bash
-   python scripts/smoke_test.py                 # chargement du moteur
-   python scripts/smoke_test.py data/test/photo.jpg   # + détection sur une image
-   ```
-2. **Enrôler les étudiants** — placer les photos dans `data/enrollment/Nom_Etudiant/` puis :
-   ```bash
-   python -m face_attendance.cli.enroll
-   ```
-3. **Prendre la présence** sur une photo de classe :
-   ```bash
-   python -m face_attendance.cli.recognize data/test/classe.jpg
-   ```
+## Lancer l'application
 
-## Données personnelles
+```bash
+python -m uvicorn face_attendance.api.main:app --reload
+```
 
-Les visages sont des **données biométriques** (loi 09-08 / CNDP). Les photos et la
-base d'empreintes ne sont **jamais versionnées** (voir `.gitignore`) et l'enrôlement
-suppose le **consentement écrit** des personnes concernées.
+Puis ouvrir **http://127.0.0.1:8000** dans un navigateur.
+
+Pour préparer rapidement une démonstration (6 étudiants + une photo de classe
+prête à reconnaître) :
+
+```bash
+python scripts/demo_seed.py
+```
+
+Puis, dans le tableau de bord : **Prise de présence** → importer
+`data/test/classe_demo.jpg` → **Reconnaître** → **Valider les présences**.
+
+---
+
+## Scripts utiles
+
+| Script | Rôle |
+|---|---|
+| `scripts/smoke_test.py` | Vérifie que le moteur IA se charge et s'exécute |
+| `scripts/demo_seed.py` | Prépare une démo (étudiants + photo de classe) |
+| `scripts/evaluate_lfw.py` | Évaluation quantitative sur le jeu public LFW |
+| `scripts/realtime_attendance.py` | Reconnaissance en temps réel via webcam |
+| `scripts/test_api.py`, `scripts/test_dashboard.py` | Tests de l'API et du tableau de bord |
+
+---
+
+## Données personnelles (loi 09-08 / CNDP)
+
+Les visages sont des **données biométriques sensibles**. Les photos, les
+empreintes et la base de données ne sont **jamais versionnées** (voir
+`.gitignore`), et tout enrôlement suppose le **consentement écrit** des personnes
+concernées (formulaire fourni dans `rapport/annexes/`).

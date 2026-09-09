@@ -1,7 +1,0 @@
-# Dépendances pour construire rapport-pfa.docx (mise en page)
-#   .venv/bin/pip install -r rapport/requirements-build.txt
-#   .venv/bin/python rapport/build_rapport.py
-# Requiert aussi : pandoc et LibreOffice (soffice) installés sur le système.
-python-docx==1.2.0
-python-pptx==1.0.2
-pypdf==6.18.0

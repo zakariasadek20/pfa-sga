@@ -1,23 +1,47 @@
+# ─────────────────────────────────────────────────────────────
 # Environnement Python
+# ─────────────────────────────────────────────────────────────
 .venv/
+venv/
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
 
-# Données personnelles / biométriques — NE JAMAIS versionner
+# ─────────────────────────────────────────────────────────────
+# Données personnelles / biométriques — NE JAMAIS VERSIONNER
+# (photos, empreintes, base de données)
+# ─────────────────────────────────────────────────────────────
+data/attendance.db
 data/enrollment/*/
 data/enrollment_db.npz
 data/test/*
-data/resultat_reconnaissance.jpg
-data/attendance.db
 data/demo_faces/
+data/resultat_reconnaissance.jpg
 !data/enrollment/.gitkeep
 !data/test/.gitkeep
 
-# Modèles téléchargés
-~/.insightface/
+# ─────────────────────────────────────────────────────────────
+# Modèles pré-entraînés (lourds, téléchargés automatiquement)
+# ─────────────────────────────────────────────────────────────
 data/models/
+~/.insightface/
 
-# Divers
+# ─────────────────────────────────────────────────────────────
+# Outils internes de génération des documents (rapport/présentation)
+# — non nécessaires à l'équipe pour exécuter ou modifier le projet
+# ─────────────────────────────────────────────────────────────
+tools/
+
+# ─────────────────────────────────────────────────────────────
+# Démonstration bout-en-bout (captures / vidéo contenant des visages)
+# ─────────────────────────────────────────────────────────────
+rapport/demo-e2e/
+
+# ─────────────────────────────────────────────────────────────
+# Fichiers temporaires / système
+# ─────────────────────────────────────────────────────────────
+rapport/.body.docx
+~$*
 *.log
 .DS_Store
