@@ -55,11 +55,22 @@
   <nav class="nav">
     <div class="brand">🎓 AI Class Attendance</div>
     <div class="links">
-      <a href="/">Accueil</a>
-      <a href="/ui/students">Étudiants</a>
-      <a href="/ui/attendance">Prise de présence</a>
-      <a href="/ui/reports">Rapports</a>
-      <a href="/ui/portail">Portail étudiant</a>
+      {% if user %}
+        <a href="/">Accueil</a>
+        {% if user.role == 'admin' %}
+          <a href="/ui/students">Étudiants</a>
+        {% endif %}
+        {% if user.role in ['admin', 'enseignant'] %}
+          <a href="/ui/attendance">Prise de présence</a>
+          <a href="/ui/reports">Rapports</a>
+        {% endif %}
+        {% if user.role == 'etudiant' %}
+          <a href="/ui/portail">Mon portail</a>
+        {% endif %}
+        <span style="margin-left:22px;opacity:.85;font-size:.9rem">
+          {{ user.nom }} · <em>{{ user.role }}</em></span>
+        <a href="/logout" style="margin-left:14px">Déconnexion</a>
+      {% endif %}
     </div>
   </nav>
   <main class="container">

@@ -1,4 +1,8 @@
-"""Dashboard enseignant (interface web, rendu serveur avec Jinja2)."""
+"""Dashboard web (rendu serveur, Jinja2) avec connexion et rôles.
+
+Rôles : admin (gestion des étudiants), enseignant (prise de présence, rapports),
+etudiant (portail personnel). Chaque page est protégée selon le rôle.
+"""
 
 import base64
 from datetime import datetime
@@ -12,7 +16,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from .. import config
-from . import face_service, models, reporting
+from . import auth, face_service, models, reporting
 from .database import get_db
 from ..face.antispoofing import get_detector
 from ..face.engine import identify
@@ -65,10 +69,51 @@ def _recognize_and_annotate(data: bytes, enroll_map: dict, db: Session):
     return faces_out, b64
 
 
+# ─────────────────────────── Authentification ───────────────────────────
+@router.get("/login", response_class=HTMLResponse)
+def login_page(request: Request, db: Session = Depends(get_db)):
+    if auth.current_user(request, db):
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse("login.html", {"request": request, "error": None})
+
+
+@router.post("/login")
+def login_submit(
+    request: Request,
+    email: str = Form(...),
+    mot_de_passe: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    u = (
+        db.query(models.Utilisateur)
+        .filter(models.Utilisateur.email == email.lower().strip())
+        .first()
+    )
+    if u and auth.verify_password(mot_de_passe, u.mot_de_passe_hash):
+        request.session["uid"] = u.id
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request, "error": "E-mail ou mot de passe incorrect."},
+        status_code=401,
+    )
+
+
+@router.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/login", status_code=303)
+
+
+# ─────────────────────────── Accueil (selon le rôle) ───────────────────────────
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):
+    user = auth.require(request, db)
+    if user.role == "etudiant":
+        return RedirectResponse("/ui/portail", status_code=303)
     ctx = {
         "request": request,
+        "user": user,
         "n_etu": db.query(models.Etudiant).count(),
         "n_sea": db.query(models.Seance).count(),
         "n_pre": db.query(models.Presence).count(),
@@ -77,14 +122,14 @@ def home(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("index.html", ctx)
 
 
+# ─────────────────────────── Étudiants (admin) ───────────────────────────
 @router.get("/ui/students", response_class=HTMLResponse)
 def students_page(request: Request, db: Session = Depends(get_db)):
+    user = auth.require(request, db, roles=["admin"])
     etus = db.query(models.Etudiant).all()
     counts = {e.id: len(e.empreintes) for e in etus}
     ctx = {
-        "request": request,
-        "etudiants": etus,
-        "counts": counts,
+        "request": request, "user": user, "etudiants": etus, "counts": counts,
         "classes": db.query(models.Classe).all(),
     }
     return templates.TemplateResponse("students.html", ctx)
@@ -92,35 +137,41 @@ def students_page(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/ui/students")
 def create_student_ui(
+    request: Request,
     nom: str = Form(...),
     prenom: str = Form(""),
     code: str = Form(""),
     classe_id: str = Form(""),
     db: Session = Depends(get_db),
 ):
+    auth.require(request, db, roles=["admin"])
     etu = models.Etudiant(
         nom=nom, prenom=prenom or None, code=code or None,
         classe_id=int(classe_id) if classe_id else None,
     )
     db.add(etu)
     db.commit()
+    auth.create_student_login(db, etu)   # crée son compte de connexion (rôle etudiant)
     return RedirectResponse("/ui/students", status_code=303)
 
 
 @router.get("/ui/students/{sid}/enroll", response_class=HTMLResponse)
 def enroll_page(sid: int, request: Request, db: Session = Depends(get_db)):
+    user = auth.require(request, db, roles=["admin"])
     etu = db.get(models.Etudiant, sid)
     return templates.TemplateResponse(
-        "enroll.html", {"request": request, "etu": etu}
+        "enroll.html", {"request": request, "user": user, "etu": etu}
     )
 
 
 @router.post("/ui/students/{sid}/enroll")
 def enroll_ui(
     sid: int,
+    request: Request,
     files: list[UploadFile] = File(...),
     db: Session = Depends(get_db),
 ):
+    auth.require(request, db, roles=["admin"])
     for f in files:
         emb = face_service.main_face_embedding(f.file.read())
         if emb is None:
@@ -135,11 +186,13 @@ def enroll_ui(
     return RedirectResponse("/ui/students", status_code=303)
 
 
+# ─────────────────────────── Prise de présence (enseignant) ───────────────────────────
 @router.get("/ui/attendance", response_class=HTMLResponse)
 def attendance_page(request: Request, db: Session = Depends(get_db)):
+    user = auth.require(request, db, roles=["admin", "enseignant"])
     return templates.TemplateResponse(
         "attendance.html",
-        {"request": request, "seances": db.query(models.Seance).all()},
+        {"request": request, "user": user, "seances": db.query(models.Seance).all()},
     )
 
 
@@ -150,21 +203,25 @@ def attendance_recognize(
     photo: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
+    user = auth.require(request, db, roles=["admin", "enseignant"])
     enroll_map = face_service.build_enroll_map(db)
     faces, image_b64 = _recognize_and_annotate(photo.file.read(), enroll_map, db)
     seance = db.get(models.Seance, seance_id)
     return templates.TemplateResponse(
         "attendance_result.html",
-        {"request": request, "seance": seance, "faces": faces, "image_b64": image_b64},
+        {"request": request, "user": user, "seance": seance, "faces": faces,
+         "image_b64": image_b64},
     )
 
 
 @router.post("/ui/attendance/confirm")
 def attendance_confirm(
+    request: Request,
     seance_id: int = Form(...),
     present_ids: list[int] = Form([]),
     db: Session = Depends(get_db),
 ):
+    auth.require(request, db, roles=["admin", "enseignant"])
     db.query(models.Presence).filter(
         models.Presence.seance_id == seance_id
     ).delete()
@@ -179,12 +236,14 @@ def attendance_confirm(
     return RedirectResponse("/", status_code=303)
 
 
+# ─────────────────────────── Rapports (enseignant) ───────────────────────────
 @router.get("/ui/reports", response_class=HTMLResponse)
 def reports_page(
     request: Request,
     module_id: int | None = None,
     db: Session = Depends(get_db),
 ):
+    user = auth.require(request, db, roles=["admin", "enseignant"])
     modules = db.query(models.Module).all()
     rows, selected = [], None
     if module_id:
@@ -193,24 +252,29 @@ def reports_page(
             rows = reporting.module_report_rows(db, selected)
     return templates.TemplateResponse(
         "reports.html",
-        {"request": request, "modules": modules, "rows": rows, "selected": selected},
+        {"request": request, "user": user, "modules": modules, "rows": rows,
+         "selected": selected},
     )
 
 
+# ─────────────────────────── Portail (étudiant : soi-même) ───────────────────────────
 @router.get("/ui/portail", response_class=HTMLResponse)
 def portal_page(
     request: Request,
     student_id: int | None = None,
     db: Session = Depends(get_db),
 ):
+    user = auth.require(request, db)   # tous les rôles connectés
+    if user.role == "etudiant":
+        student_id = user.etudiant_id   # un étudiant ne voit que sa propre assiduité
     selected = db.get(models.Etudiant, student_id) if student_id else None
     hist = reporting.student_history(db, selected) if selected else None
+    if user.role == "etudiant":
+        etuds = [selected] if selected else []
+    else:
+        etuds = db.query(models.Etudiant).all()
     return templates.TemplateResponse(
         "portal.html",
-        {
-            "request": request,
-            "etudiants": db.query(models.Etudiant).all(),
-            "selected": selected,
-            "hist": hist,
-        },
+        {"request": request, "user": user, "etudiants": etuds,
+         "selected": selected, "hist": hist},
     )

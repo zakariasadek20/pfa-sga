@@ -93,3 +93,16 @@ class Presence(Base):
     methode = Column(String, default="auto")  # auto / manuel
     seance = relationship("Seance", back_populates="presences")
     etudiant = relationship("Etudiant", back_populates="presences")
+
+
+class Utilisateur(Base):
+    """Compte de connexion. Rôle : admin / enseignant / etudiant."""
+
+    __tablename__ = "utilisateurs"
+    id = Column(Integer, primary_key=True)
+    nom = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)   # identifiant de connexion
+    mot_de_passe_hash = Column(String, nullable=False)
+    role = Column(String, nullable=False, default="etudiant")
+    etudiant_id = Column(Integer, ForeignKey("etudiants.id"), nullable=True)
+    etudiant = relationship("Etudiant")
