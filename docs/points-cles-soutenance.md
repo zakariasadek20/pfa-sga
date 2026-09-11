@@ -20,6 +20,15 @@ Un système qui fait la présence en classe **automatiquement**, en reconnaissan
 3. On **compare** ce code à la base des étudiants. Si ça ressemble assez → reconnu.
 4. L'enseignant **valide toujours** avant d'enregistrer.
 
+## L'IA en bref (les modèles)
+
+- **RetinaFace** — trouve les visages sur l'image (la *détection*). Il donne la position de chaque visage.
+- **ArcFace** — transforme chaque visage en un **code de 512 nombres** (l'*empreinte*). Deux photos de la même personne donnent des codes proches.
+- **InsightFace** — la bibliothèque qui contient RetinaFace et ArcFace (pack « buffalo_l ») ; c'est ce que nous utilisons.
+- **MiniFASNet** — petit modèle **anti-fraude** : il dit si le visage est une vraie personne ou une photo.
+
+Ces modèles sont **pré-entraînés** (déjà appris sur des millions de visages) et tournent sur un **ordinateur normal** (CPU), sans carte graphique.
+
 ## Pourquoi ces choix
 - **Modèles déjà existants** (RetinaFace + ArcFace) : parmi les meilleurs, gratuits et très précis. On ne réinvente pas.
 - **Ordinateur normal** (CPU) : pas besoin de matériel cher.
@@ -71,3 +80,22 @@ Il y a un module **anti-fraude** (détection du vivant). Il reste à valider en 
 
 **Combien de temps pour faire la présence ?**
 Environ deux secondes pour toute la photo.
+
+---
+
+## Questions techniques (réponses simples)
+
+**C'est quoi une « empreinte » (embedding) ?**
+Un visage transformé en une liste de 512 nombres, comme une signature. Deux photos de la même personne donnent des nombres proches.
+
+**Comment compare-t-on deux visages ?**
+On mesure la ressemblance entre les deux listes de nombres (la *similarité cosinus*). Un résultat proche de 1 veut dire très ressemblant.
+
+**C'est quoi le seuil ?**
+La limite de décision. Si la ressemblance dépasse 0,35, c'est l'étudiant ; sinon, c'est « inconnu ».
+
+**C'est quoi FAR et FRR ?**
+FAR : accepter la mauvaise personne (fausse acceptation). FRR : refuser la bonne personne (faux rejet). On règle le seuil pour éviter les deux.
+
+**Pourquoi ça marche sans carte graphique ?**
+Les modèles sont légers et déjà entraînés ; le calcul d'une image est rapide, même sur un simple processeur.
