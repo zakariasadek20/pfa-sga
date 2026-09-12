@@ -186,6 +186,22 @@ def enroll_ui(
     return RedirectResponse("/ui/students", status_code=303)
 
 
+@router.post("/ui/students/{sid}/delete")
+def delete_student_ui(sid: int, request: Request, db: Session = Depends(get_db)):
+    """Supprime un étudiant et TOUTES ses données liées."""
+    auth.require(request, db, roles=["admin"])
+    db.query(models.Presence).filter(models.Presence.etudiant_id == sid).delete()
+    db.query(models.EmpreinteReference).filter(
+        models.EmpreinteReference.etudiant_id == sid).delete()
+    db.query(models.Utilisateur).filter(
+        models.Utilisateur.etudiant_id == sid).delete()   # son compte de connexion
+    etu = db.get(models.Etudiant, sid)
+    if etu:
+        db.delete(etu)
+    db.commit()
+    return RedirectResponse("/ui/students", status_code=303)
+
+
 # ─────────────────────────── Prise de présence (enseignant) ───────────────────────────
 @router.get("/ui/attendance", response_class=HTMLResponse)
 def attendance_page(request: Request, db: Session = Depends(get_db)):

@@ -36,7 +36,13 @@
           {% if counts[e.id] %}<span class="badge g">{{ counts[e.id] }} photo(s)</span>
           {% else %}<span class="badge r">non enrôlé</span>{% endif %}
         </td>
-        <td><a class="btn ghost" href="/ui/students/{{ e.id }}/enroll">Enrôler</a></td>
+        <td style="white-space:nowrap">
+          <a class="btn ghost" href="/ui/students/{{ e.id }}/enroll">Enrôler</a>
+          <form method="post" action="/ui/students/{{ e.id }}/delete" style="display:inline;margin-left:6px"
+                onsubmit="return confirm('Supprimer cet étudiant et toutes ses données (empreintes, présences, compte) ?')">
+            <button class="btn" type="submit" style="background:#dc2626">Supprimer</button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
